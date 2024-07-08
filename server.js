@@ -9,8 +9,18 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
+// Parse the credentials JSON from the environment variable
+let CREDENTIALS;
+
+try {
+  CREDENTIALS = JSON.parse(process.env.CREDENTIALS);
+} catch (error) {
+  console.error("Error parsing CREDENTIALS:", error);
+  process.exit(1); // Exit the process if credentials are invalid
+}
+
 const client = new SpeechClient({
-  keyFilename: process.env.CREDENTIALS,
+  credentials: CREDENTIALS,
 });
 
 // Enable CORS
@@ -46,6 +56,7 @@ app.post("/speech-to-text", upload.single("audio"), async (req, res) => {
       .join("\n");
     res.json({ transcription: transcription });
   } catch (error) {
+    console.error("Error during speech recognition:", error); // Log the error details
     res.status(500).send("Error processing audio file");
   } finally {
     // Clean up the uploaded file
